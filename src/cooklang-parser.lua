@@ -114,10 +114,10 @@ end
 function Recipe:parse(text)
   -- remove linefeeds
   local text = text or self.text
-  print(text)
+  -- print(text)
   local pq = Ct(lines ^ 0)
   local res = pq:match(text)
-  pretty(res)
+  -- pretty(res)
   return res
 end
 
