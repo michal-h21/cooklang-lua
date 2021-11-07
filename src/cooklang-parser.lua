@@ -121,6 +121,38 @@ function Recipe:parse(text)
   return res
 end
 
+function Recipe:process()
+  -- turn ast into useful data
+  local block = {}
+  for _, line in ipairs(self.ast) do
+    -- turn lines into steps
+    local typ = line[1]
+    if typ == "line" then
+      -- copy line contents to the current block. ignore first item, as it is line type
+      for i = 2, #line do
+        block[#block+1] = line[i]
+      end
+    else
+      -- close current block when we find metadata or blank line
+      if #block > 0 then table.insert(self.steps, block) end
+      block = {}
+      if typ == metadata then
+        -- insert metadata to the metadata table
+        local key = line[2]
+        local value = line[3]
+        self.metadata[key] = value
+      end
+    end
+  end
+  -- insert also last block
+  if #block > 0 then table.insert(self.steps, block) end
+  for k,v in ipairs(self.steps) do print(k, #v) end
+end
+
+function Recipe:render(rules)
+  -- ToDo: make renderer
+end
+
 function Recipe:get_ast()
   return self.ast
 end
@@ -137,6 +169,7 @@ function Recipe:new(text)
   self.__index = self
   setmetatable(t, self)
   t.ast = t:parse()
+  t:process()
   return t
 end
 
