@@ -1,6 +1,6 @@
 local cooklang_parser = require "cooklang-parser"
 local example = [[
->> source: https://www.gimmesomeoven.com/baked-potato/
+>> source: https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/
 >> time required: 1.5 hours
 >> course: dinner
 
@@ -22,17 +22,66 @@ Serve straightaway with your favourite topping. // Add your favorite topping her
 describe("It should parse full recipe", function()
   local parser = cooklang_parser:new(example)
   local data = parser:get_ast()
-  it("Parser should return table", function()
-    assert.same(type(data),"table")
-  end)
 
   local function is_metadata(tbl)
-    print(tbl[1])
+    return tbl[1] == "metadata"
   end
-  for k,v in ipairs(data) do
-    is_metadata(v)
-    print(k,v)
+  local function is_line(tbl)
+    return tbl[1] == "line"
   end
+  local function is_blank(tbl)
+    return tbl[1] == "blankline"
+  end
+
+
+  it("Parser should return ast", function()
+    assert.same(type(data),"table")
+    assert.truthy(is_metadata(data[1]))
+    assert.truthy(is_blank(data[4]))
+    assert.truthy(is_line(data[5]))
+  end)
+
+  it("Should parse metadata", function()
+    local meta = data[1]
+    assert.truthy(is_metadata(meta))
+    assert.same(meta[2], "source")
+    assert.same(meta[3], "https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/")
+  end)
+
+  it("Should handle comments", function()
+    local comment_line = data[5]
+    assert.truthy(is_line(comment_line))
+    -- first array value is "line", second is comment
+    assert.same(#comment_line, 2)
+    local comment = comment_line[2]
+    assert.same(type(comment), "table")
+    assert.same(comment[1], "comment")
+    assert.same(comment[2], "Source: https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/")
+  end)
+
+  it("Should handle ingredients", function()
+    local ingredients_line = data[7]
+    assert.truthy(is_line(ingredients_line))
+    local eggs = ingredients_line[3]
+    local quantity = ingredients_line[4]
+    assert.same(eggs[1], "ingredientarg")
+    assert.same(eggs[2], "eggs")
+    assert.same(quantity[1], "quantity")
+    assert.same(type(quantity[2]), "table")
+    assert.same(quantity[2][1], "amount")
+    assert.same(quantity[2][2], "3")
+    local flour = ingredients_line[6]
+    local quantity = ingredients_line[7]
+    assert.same(flour[1], "ingredientarg")
+    assert.same(flour[2], "flour")
+    assert.same(#quantity, 3)
+    assert.same(quantity[2][1], "amount")
+    assert.same(quantity[2][2], "125")
+    assert.same(quantity[3][1], "unit")
+    assert.same(quantity[3][2], "g")
+    
+  end)
+  
   
 
 end)
