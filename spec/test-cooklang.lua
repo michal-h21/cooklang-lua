@@ -79,7 +79,29 @@ describe("It should parse full recipe", function()
     assert.same(quantity[2][2], "125")
     assert.same(quantity[3][1], "unit")
     assert.same(quantity[3][2], "g")
+    local ingredients_line = data[11]
+    local butter = ingredients_line[3]
+    assert.same(butter[1], "ingredient")
+    assert.same(butter[2], "butter")
     
+  end)
+  it("Should handle cookware and timers", function()
+    local parser = cooklang_parser:new "Pour into a #bowl and leave to stand for ~{15%minutes}. Use #frying pan{}"
+    local records = parser:get_ast()
+    local line = records[1]
+    assert.truthy(is_line(line))
+    local cookware = line[3]
+    assert.same(cookware[1], "cookware")
+    assert.same(cookware[2], "bowl")
+    local cookware = line[7]
+    assert.same(cookware[1], "cookware")
+    assert.same(cookware[2], "frying pan")
+    local timer = line[5]
+    assert.same(timer[1], "timer")
+    assert.same(timer[2][1], "value")
+    assert.same(timer[2][2], "15")
+    assert.same(timer[3][1], "unit")
+    assert.same(timer[3][2], "minutes")
   end)
   
   
