@@ -1,26 +1,6 @@
 -- parser for https://cooklang.org/
 
-local example = [[
->> source: https://www.gimmesomeoven.com/baked-potato/
->> time required: 1.5 hours
->> course: dinner
-
-// Source: https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/
-
-Crack the @eggs{3} into a blender, then add the @flour{125%g}, @milk{250%ml} and @sea salt{1%pinch}, and blitz until smooth.
-
-Pour into a #bowl and leave to stand for ~{15%minutes}.
-
-Melt the @butter (or a drizzle of @oil if you want to be a bit healthier) in a #large non-stick frying pan{} on a medium heat, then tilt the pan so the butter coats the surface.
-
-Pour in 1 ladle of batter and tilt again, so that the batter spreads all over the base, then cook for 1 to 2 minutes, or until it starts to come away from the sides.
-
-Once golden underneath, flip the pancake over and cook for 1 further minute, or until cooked through.
-
-Serve straightaway with your favourite topping. // Add your favorite topping here to make sure it's included in your meal plan!
-]]
-
-example = "Crack the @eggs{3} into a blender, melt the @butter then add the @flour{125*%g}, @milk{250%ml} and @sea salt{1%pinch}, and blitz until smooth. @longer ingredient{22%}"
+example = "Pour into a #bowl and leave to stand for ~{15%minutes}. #large non-stick frying pan{}"
 
 
 local Recipe = {}
@@ -35,21 +15,6 @@ local lpeg = require("lpeg")
 R, S, V, P = lpeg.R, lpeg.S, lpeg.V, lpeg.P
 C, Cs, Ct, Cmt, Cg, Cb, Cc, Cp = lpeg.C, lpeg.Cs, lpeg.Ct, lpeg.Cmt, lpeg.Cg, lpeg.Cb, lpeg.Cc, lpeg.Cp
 
--- declare special characters
--- local greaterthan = utfcodepoint ">"
--- local at = utfcodepoint "@" 
--- local hash = utfcodepoint "#" 
--- local tilde = utfcodepoint "~" 
--- local colon = utfcodepoint ":" 
--- local lbrace = utfcodepoint "{" 
--- local rbrace = utfcodepoint "}" 
--- local percent = utfcodepoint "%" 
--- local star = utfcodepoint "*"
--- local bar = utfcodepoint "|"
--- local space = utfcodepoint " "
--- local newline = utfcodepoint "\n"
--- local linefeed = utfcodepoint "\r"
---
 local mark
 mark = function(name)
   return function(...)
@@ -100,8 +65,18 @@ local ingredientarg = ingredientchar * (content ^ 1 / mark "ingredientarg")
                       * lbrace * (quantity / mark "quantity")  * rbrace
 
 local ingredients   = ingredientarg + ingredient 
+
 -- handle #cookware
-local cookware      = cookwaresimple 
+local cookwarechar  = "#"
+local cookwaresimple= cookwarechar * (word ^ 1 / mark "cookware")
+local cookwarelong  = cookwarechar * (content ^ 1 / mark "cookware") * lbrace * optionalspace * rbrace
+local cookware      = cookwarelong + cookwaresimple
+
+-- handle ~timers
+local timerchar     = "~"
+local timeamount    = (notrbracepercent ^ 1 / mark "value")
+local timeunit      = (notrbrace ^ 1 / mark "unit")
+local timer         = timerchar * lbrace * (timeamount * percent * timeunit / mark "timer") * rbrace
 
 
 local line          = linechar^0 - newline
@@ -112,7 +87,7 @@ local comment       = commentchar * optionalspace * (line / mark "comment")
 local metadata      = metadatachar * optionalspace * ( C( nocolon ^ 1) * optionalspace * colon ^ 0 * optionalspace * C (line) / mark "metadata")
 
 -- supported inline content 
-local inlines       = (comment + ingredientlong + ingredients) ^ 1
+local inlines       = (comment + ingredientlong + ingredients + cookware + timer) ^ 1
 local text          = (any - newline - inlines -  metadata) ^ 1 / mark "text"
 
 -- mark lines
@@ -136,13 +111,18 @@ local function pretty(tbl, level)
   end
 end
 
-function Recipe:parse()
+function Recipe:parse(text)
   -- remove linefeeds
-  print(self.text)
+  local text = text or self.text
+  print(text)
   local pq = Ct(lines ^ 0)
-  local res = pq:match(self.text)
+  local res = pq:match(text)
   pretty(res)
+  return res
+end
 
+function Recipe:get_ast()
+  return self.ast
 end
 
 function Recipe:new(text)
@@ -153,12 +133,13 @@ function Recipe:new(text)
     metadata = {},
     cookware = {},
     ingredients = {},
-    state = "init"
   }
   self.__index = self
-  return setmetatable(t, self)
+  setmetatable(t, self)
+  t.ast = t:parse()
+  return t
 end
 
-local r = Recipe:new(example)
-r:parse()
+-- local r = Recipe:new(example)
+-- r:parse()
 return Recipe
