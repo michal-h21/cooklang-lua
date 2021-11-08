@@ -114,6 +114,18 @@ local function pretty(tbl, level)
   end
 end
 
+local function copy_table(tbl)
+  local t = {}
+  for k,v in pairs(tbl) do
+    if type(v) == "table" then
+      t[k] = copy_table(v)
+    else
+      t[k] = v
+    end
+  end
+  return t
+end
+
 function Recipe:parse(text)
   local text = text or self.text
   -- parse text and return AST
@@ -130,7 +142,9 @@ function Recipe:process_lines()
     if typ == "line" then
       -- copy line contents to the current block. ignore first item, as it is line type
       for i = 2, #line do
-        block[#block+1] = line[i]
+        -- we make deep copy of each element, because we will change them in later processing
+        -- and we want to keep AST in the original form
+        block[#block+1] = copy_table(line[i])
       end
     else
       -- close current block when we find metadata or blank line
@@ -148,8 +162,19 @@ function Recipe:process_lines()
   if #block > 0 then table.insert(self.steps, block) end
 end
 
+function Recipe:process_steps()
+  -- extrext ingredients, timers and cookware
+  for _, step in ipairs(self.steps) do
+    for _, element in ipairs(step) do
+      local typ = element[1]
+      print(typ)
+    end
+  end
+end
+
 function Recipe:process()
   self:process_lines()
+  self:process_steps()
   for k,v in ipairs(self.steps) do print(k, #v) end
 end
 
