@@ -9,6 +9,7 @@ local Recipe = {}
 local utfcodepoint = utf8.codepoint
 local utfchar = utf8.char
 
+-- these methods come from https://github.com/michal-h21/LuaXML/blob/master/luaxml-parse-query.lua
 local R, S, V, P
 local C, Cs, Ct, Cmt, Cg, Cb, Cc, Cp
 local lpeg = require("lpeg")
@@ -25,6 +26,7 @@ mark = function(name)
   end
 end
 
+-- define grammar for Cooklang
 local newline       = P("\n")
 local any           = P(1)
 local eof           = - any
@@ -94,11 +96,12 @@ local text          = (any - newline - inlines -  metadata) ^ 1 / mark "text"
 local linecontent   = (inlines +  text) ^ 1
 local linex         = linecontent ^ 1 / mark "line"
 local lines         = (linex + metadata + blanklines + newline) ^ 1
+local grammar       = Ct(lines ^ 0)
 -- local block         = lines ^ 1 * blanklines / mark "block"
 
 
 
-
+-- auxilary table pretty printer used for debugging
 local function pretty(tbl, level)
   local level = level or 0
   local start = string.rep("  ", level)
@@ -112,16 +115,13 @@ local function pretty(tbl, level)
 end
 
 function Recipe:parse(text)
-  -- remove linefeeds
   local text = text or self.text
-  -- print(text)
-  local pq = Ct(lines ^ 0)
-  local res = pq:match(text)
-  -- pretty(res)
+  -- parse text and return AST
+  local res = grammar:match(text)
   return res
 end
 
-function Recipe:process()
+function Recipe:process_lines()
   -- turn ast into useful data
   local block = {}
   for _, line in ipairs(self.ast) do
@@ -146,6 +146,10 @@ function Recipe:process()
   end
   -- insert also last block
   if #block > 0 then table.insert(self.steps, block) end
+end
+
+function Recipe:process()
+  self:process_lines()
   for k,v in ipairs(self.steps) do print(k, #v) end
 end
 
