@@ -162,13 +162,56 @@ function Recipe:process_lines()
   if #block > 0 then table.insert(self.steps, block) end
 end
 
-function Recipe:process_steps()
-  -- extrext ingredients, timers and cookware
-  for _, step in ipairs(self.steps) do
-    for _, element in ipairs(step) do
-      local typ = element[1]
-      print(typ)
+function Recipe:add_ingredient(ingredient)
+  -- add ingredient into list of ingredients. 
+  -- sum amounts of the same units
+  local name = ingredient.name
+  local quantity = ingredient.quantity or {}
+  local amount = tonumber(quantity.amount) or quantity.amount
+  print(name, amount)
+  local saved_ingredient = self.ingredients[name] or {}
+  saved_ingredient.name = saved_ingredient.name or name
+  self.ingredients[name] = saved_ingredient
+end
+
+function Recipe:process_ingredient(ingredient, quantity)
+  local name = ingredient[2]
+  local newquantity = {}
+  -- process quantity
+  if #quantity > 0 and quantity[1] == "quantity" then
+    -- first table item in quantity is "quantitity" string, we can skip that
+    for i = 2, #quantity do
+      local key = quantity[i][1]
+      local value = quantity[i][2]
+      newquantity[key] = value
     end
+  end
+  local newingredient =  {type = "ingredient", name = name, quantity = newquantity}
+  -- add new ingredient to list of ingredients
+  self:add_ingredient(newingredient)
+  return newingredient
+end
+
+function Recipe:process_steps()
+  -- extract ingredients, timers and cookware
+  for i, step in ipairs(self.steps) do
+    local newstep = {}
+    for i=1, #step do
+      local element = step[i]
+      local typ = element[1]
+      if typ == "ingredient" then
+        newstep[#newstep+1] = self:process_ingredient(element, {})
+      elseif typ == "ingredientarg" then
+        -- we must process also next step, which contains quantity
+        i = i + 1
+        newstep[#newstep+1] = self:process_ingredient(element, step[i])
+      elseif typ == "cookware" then
+      elseif typ == "timer" then
+      end
+      -- print(typ)
+    end
+    -- replace original steps with processed data
+    self.steps[i] = newstep
   end
 end
 
