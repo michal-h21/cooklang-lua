@@ -107,3 +107,18 @@ describe("It should parse full recipe", function()
   
 
 end)
+
+describe("Test processed recipe", function()
+  local example = [[Add @water{3%l}, @water{2%l}, @water{100%ml}]]
+  local parser = cooklang_parser:new(example)
+  for k,v in pairs(parser.ingredients) do
+    print(k,v)
+    print "------"
+    for x,y in pairs(v) do 
+      print(y)
+    end
+  end
+
+
+
+end)

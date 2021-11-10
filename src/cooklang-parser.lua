@@ -167,10 +167,33 @@ function Recipe:add_ingredient(ingredient)
   -- sum amounts of the same units
   local name = ingredient.name
   local quantity = ingredient.quantity or {}
-  local amount = tonumber(quantity.amount) or quantity.amount
-  print(name, amount)
   local saved_ingredient = self.ingredients[name] or {}
   saved_ingredient.name = saved_ingredient.name or name
+  local saved_quantity = saved_ingredient.quantity or {}
+  local unit = quantity.unit 
+  local amount = tonumber(quantity.amount) 
+  -- if amount is numerical and has unit, try to update already existing
+  --
+  if amount and unit then
+    -- find if the same unit was  used
+    -- increase amounts for the same units of the ingredient
+    local updated = false
+    for k, v in ipairs(saved_quantity) do
+      if unit == v.unit then
+        updated = true
+        saved_quantity[k].amount = (saved_quantity[k].amount or 0) + amount
+      end
+    end
+    -- if we couldn't find the same unit, just add the quantity
+    if not updated then
+      saved_quantity[#saved_quantity+1] = quantity
+    end
+
+  else
+    saved_quantity[#saved_quantity+1] = quantity
+  end
+    
+  saved_ingredient.quantity = saved_quantity
   self.ingredients[name] = saved_ingredient
 end
 
@@ -206,7 +229,11 @@ function Recipe:process_steps()
         i = i + 1
         newstep[#newstep+1] = self:process_ingredient(element, step[i])
       elseif typ == "cookware" then
+        newstep[#newstep+1] = element
       elseif typ == "timer" then
+        newstep[#newstep+1] = element
+      else
+        newstep[#newstep+1] = element
       end
       -- print(typ)
     end
