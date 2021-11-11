@@ -260,7 +260,7 @@ end
 function Recipe:process()
   self:process_lines()
   self:process_steps()
-  for k,v in ipairs(self.steps) do print(k, #v) end
+  -- for k,v in ipairs(self.steps) do print(k, #v) end
 end
 
 function Recipe:render(rules)
