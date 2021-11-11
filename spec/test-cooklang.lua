@@ -109,16 +109,27 @@ describe("It should parse full recipe", function()
 end)
 
 describe("Test processed recipe", function()
-  local example = [[Add @water{3%l}, @water{2%l}, @water{100%ml}]]
-  local parser = cooklang_parser:new(example)
-  for k,v in pairs(parser.ingredients) do
-    print(k,v)
-    print "------"
-    for x,y in pairs(v) do 
-      print(y)
-    end
-  end
-
-
-
+  it("Should parse ingredients", function()
+    local example = [[Add @water{3%l}, @water{2%l}, @water{100%ml}, @water, @milk]]
+    local parser = cooklang_parser:new(example)
+    local ingredients = parser.ingredients 
+    assert.same(type(ingredients), "table")
+    -- count number of ingredients. it is associative table, so we must use this trick
+    -- to count it
+    local count = 0
+    for _, _ in pairs(ingredients) do count = count + 1 end
+    assert.same(count, 2)
+    assert.truthy(ingredients.water)
+    assert.truthy(ingredients.milk)
+    -- there are three different units of water - liters, mililiters, and without unit
+    -- the water without unit is not saved, because it is just reference to water
+    assert.same(#ingredients.water, 2)
+    -- milk is used without any amount, so it has only one instance
+    assert.same(#ingredients.milk, 1)
+    local water = ingredients.water
+    assert.same(water[1].amount, 5)
+    assert.same(water[1].unit, "l")
+    assert.same(water[2].amount, 100)
+    assert.same(water[2].unit, "ml")
+  end)
 end)

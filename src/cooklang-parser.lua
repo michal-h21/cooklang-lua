@@ -43,7 +43,7 @@ local ingredientchar= P("@")
 local lbrace        = P("{")
 local rbrace        = P("}")
 local specialchars  = S(",.!?{}@#~")
-local word          = any - spacechar ^ 1
+local word          = any - spacechar - specialchars ^ 1
 local content       = any - specialchars ^ 1
 
 -- handle @ingredients
@@ -168,8 +168,8 @@ function Recipe:add_ingredient(ingredient)
   local name = ingredient.name
   local quantity = ingredient.quantity or {}
   local saved_ingredient = self.ingredients[name] or {}
-  saved_ingredient.name = saved_ingredient.name or name
-  local saved_quantity = saved_ingredient.quantity or {}
+  -- saved_ingredient.name = saved_ingredient.name or name
+  local saved_quantity = saved_ingredient or {}
   local unit = quantity.unit 
   local amount = tonumber(quantity.amount) 
   -- if amount is numerical and has unit, try to update already existing
@@ -186,15 +186,30 @@ function Recipe:add_ingredient(ingredient)
     end
     -- if we couldn't find the same unit, just add the quantity
     if not updated then
+      -- save the numeric amount
+      quantity.amount = amount
       saved_quantity[#saved_quantity+1] = quantity
     end
 
   else
-    saved_quantity[#saved_quantity+1] = quantity
+    -- in this case, we ei
+    if quantity.amount then
+      -- if amount is numeric, use the number instead of string, for consistency
+      if amount then 
+        quantity.amount = amount 
+      end
+      saved_quantity[#saved_quantity+1] = quantity
+    else
+      -- if quantity doesn't have any amount, save it to the list of
+      -- ingredients only when it isn't already here
+      if #saved_quantity == 0 then
+        saved_quantity[#saved_quantity+1] = quantity
+      end
+    end
   end
     
-  saved_ingredient.quantity = saved_quantity
-  self.ingredients[name] = saved_ingredient
+  -- saved_ingredient.quantity = saved_quantity
+  self.ingredients[name] = saved_quantity
 end
 
 function Recipe:process_ingredient(ingredient, quantity)
