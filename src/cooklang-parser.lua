@@ -167,7 +167,7 @@ function Recipe:add_ingredient(ingredient)
   -- add ingredient into list of ingredients. 
   -- sum amounts of the same units
   local name = ingredient.name
-  local quantity = ingredient.quantity or {}
+  local quantity = ingredient 
   local saved_ingredient = self.used_ingredients[name] or {}
   saved_ingredient.name = saved_ingredient.name or name
   local saved_quantity = saved_ingredient or {}
@@ -240,10 +240,10 @@ function Recipe:process_ingredient(ingredient, quantity)
   local name = ingredient[2]
   local newquantity = {}
   -- process quantity
+  local newingredient =  {type = "ingredient", name = name}
   if is_quantity(quantity) then
-    tbl_to_keys(quantity, newquantity)
+    tbl_to_keys(quantity, newingredient)
   end
-  local newingredient =  {type = "ingredient", name = name, quantity = newquantity}
   -- add new ingredient to list of ingredients
   self:add_ingredient(newingredient)
   return newingredient
