@@ -217,9 +217,11 @@ function Recipe:add_ingredient(ingredient)
   end
 end
 
+-- test if current node is quantity
 local function is_quantity(quantity)
   if type(quantity) == "table" and #quantity > 0 and quantity[1] == "quantity" then return true end
 end
+
 function Recipe:process_ingredient(ingredient, quantity)
   local name = ingredient[2]
   local newquantity = {}
@@ -240,7 +242,13 @@ end
 
 function Recipe:process_cookware(cookware)
   name = cookware[2]
-
+  local newcookware = {type = "cookware", name = name}
+  -- just mark cookware as used and insert it to the list of cookware
+  if not self.used_cookware[name] then
+    self.cookware[#self.cookware+1] = newcookware
+    self.used_cookware[name] = newcookware
+  end
+  return newcookware
 end
 
 
@@ -258,7 +266,7 @@ function Recipe:process_steps()
         i = i + 1
         newstep[#newstep+1] = self:process_ingredient(element, step[i])
       elseif typ == "cookware" then
-        newstep[#newstep+1] = element
+        newstep[#newstep+1] = self:process_cookware(element)
       elseif typ == "timer" then
         newstep[#newstep+1] = element
       elseif typ == "quantity" then
@@ -294,8 +302,10 @@ function Recipe:new(text)
     steps = {},
     timers = {},
     metadata = {},
+    -- these are lists that hold cookware and ingredients sorted by their first use in the recipe
     cookware = {},
     ingredients = {},
+    -- these are hash table for fast access to cookware and ingredients by name
     used_cookware = {},
     used_ingredients = {}
   }

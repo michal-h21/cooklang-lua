@@ -137,4 +137,18 @@ describe("Test processed recipe", function()
     assert.same(ingredients[1].name, "water")
     assert.same(ingredients[2].name, "milk")
   end)
+  it("Should parse cookware", function()
+    local example = [[
+    Pour into a #bowl and leave to stand for ~{15%minutes}.
+
+    Melt the @butter (or a drizzle of @oil if you want to be a bit healthier) in a #large non-stick frying pan{} on a medium heat, then tilt the pan so the butter coats the surface.
+    ]]
+    local parser = cooklang_parser:new(example)
+    local cookware      = parser.cookware
+    local used_cookware = parser.used_cookware 
+    assert.same(#cookware, 2)
+    assert.same(cookware[1].name, "bowl")
+    assert.same(cookware[2].name, "large non-stick frying pan")
+  end)
 end)
+
