@@ -72,13 +72,14 @@ local ingredients   = ingredientarg + ingredient
 local cookwarechar  = "#"
 local cookwaresimple= cookwarechar * (word ^ 1 / mark "cookware")
 local cookwarelong  = cookwarechar * (content ^ 1 / mark "cookware") * lbrace * optionalspace * rbrace
-local cookware      = cookwarelong + cookwaresimple
+local cookwarequantity = cookwarechar * (content ^ 1 / mark "cookware") * lbrace * (quantity / mark "quantity") * rbrace
+local cookware      = cookwarequantity + cookwarelong + cookwaresimple
 
 -- handle ~timers
 local timerchar     = "~"
 local timeamount    = (notrbracepercent ^ 1 / mark "value")
 local timeunit      = (notrbrace ^ 1 / mark "unit")
-local timer         = timerchar * lbrace * (timeamount * percent * timeunit / mark "timer") * rbrace
+local timer         = timerchar * (content ^ 0 / mark "timer") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
 
 
 local line          = linechar^0 - newline
@@ -222,17 +223,25 @@ local function is_quantity(quantity)
   if type(quantity) == "table" and #quantity > 0 and quantity[1] == "quantity" then return true end
 end
 
+-- convert parsed array from lpeg to hash table
+local function tbl_to_keys(quantity, tbl)
+  local tbl = tbl or {}
+  for i = 2, #quantity do
+    local el = quantity[i]
+    key, value = el[1], el[2]
+    -- convert value to number, if possible
+    value = tonumber(value) or value
+    tbl[key] = value
+  end
+  return tbl
+end
+
 function Recipe:process_ingredient(ingredient, quantity)
   local name = ingredient[2]
   local newquantity = {}
   -- process quantity
   if is_quantity(quantity) then
-    -- first table item in quantity is "quantitity" string, we can skip that
-    for i = 2, #quantity do
-      local key = quantity[i][1]
-      local value = quantity[i][2]
-      newquantity[key] = value
-    end
+    tbl_to_keys(quantity, newquantity)
   end
   local newingredient =  {type = "ingredient", name = name, quantity = newquantity}
   -- add new ingredient to list of ingredients
@@ -240,26 +249,24 @@ function Recipe:process_ingredient(ingredient, quantity)
   return newingredient
 end
 
-function Recipe:process_cookware(cookware)
+function Recipe:process_cookware(cookware, quantity)
   name = cookware[2]
   local newcookware = {type = "cookware", name = name}
   -- just mark cookware as used and insert it to the list of cookware
   if not self.used_cookware[name] then
     self.cookware[#self.cookware+1] = newcookware
     self.used_cookware[name] = newcookware
+    if quantity and is_quantity(quantity) then tbl_to_keys(quantity, newcookware) end
   end
   return newcookware
 end
 
-function Recipe:process_timers(timer)
-  local newtimer = {name = "timer"}
+
+function Recipe:process_timers(timer, quantity)
+  local newtimer = {type = "timer"}
+  newtimer.name = timer[2]
   -- convert parsed info from timer to key-val list
-  -- timer[1] is string "timer", further ones are parsed values
-  for i = 2, #timer do
-    local el = timer[i]
-    key, value = el[1], el[2]
-    newtimer[key] = value
-  end
+  tbl_to_keys(quantity, newtimer)
   -- try to convert the numerical value to number
   newtimer.value = tonumber(newtimer.value) or newtimer.value
   -- save timer
@@ -269,13 +276,7 @@ end
 
 function Recipe:process_element(element)
   local newelement = {name = element[1]}
-  for i=2, #element do
-    local el = element[i]
-    if type(el) == "table" then
-      local key, value = el[1], el[2]
-      newelement[key] = value
-    end
-  end
+  tbl_to_keys(element, newelement)
   return newelement
 end
 
@@ -291,12 +292,12 @@ function Recipe:process_steps()
         newstep[#newstep+1] = self:process_ingredient(element, {})
       elseif typ == "ingredientarg" then
         -- we must process also next step, which contains quantity
-        i = i + 1
-        newstep[#newstep+1] = self:process_ingredient(element, step[i])
+        newstep[#newstep+1] = self:process_ingredient(element, step[i+1])
       elseif typ == "cookware" then
-        newstep[#newstep+1] = self:process_cookware(element)
+        newstep[#newstep+1] = self:process_cookware(element, step[i+1])
       elseif typ == "timer" then
-        newstep[#newstep+1] = self:process_timers(element)
+        -- we must process also next step, which contains quantity
+        newstep[#newstep+1] = self:process_timers(element, step[i+1])
       elseif typ == "comment" then
         newstep[#newstep+1] = {type="comment", value=element[2]}
       elseif typ == "text" then

@@ -86,22 +86,24 @@ describe("It should parse full recipe", function()
     
   end)
   it("Should handle cookware and timers", function()
-    local parser = cooklang_parser:new "Pour into a #bowl and leave to stand for ~{15%minutes}. Use #frying pan{}"
+    local parser = cooklang_parser:new "Pour into a #bowl and leave to stand for ~{15%minutes}. Use #frying pan{}, ~bake{20%minutes}"
     local records = parser:get_ast()
     local line = records[1]
     assert.truthy(is_line(line))
     local cookware = line[3]
     assert.same(cookware[1], "cookware")
     assert.same(cookware[2], "bowl")
-    local cookware = line[7]
+    local cookware = line[8]
     assert.same(cookware[1], "cookware")
     assert.same(cookware[2], "frying pan")
     local timer = line[5]
     assert.same(timer[1], "timer")
-    assert.same(timer[2][1], "value")
-    assert.same(timer[2][2], "15")
-    assert.same(timer[3][1], "unit")
-    assert.same(timer[3][2], "minutes")
+    local timer_quantity = line[6]
+    assert.same(timer_quantity[1], "quantity")
+    assert.same(timer_quantity[2][1], "value")
+    assert.same(timer_quantity[2][2], "15")
+    assert.same(timer_quantity[3][1], "unit")
+    assert.same(timer_quantity[3][2], "minutes")
   end)
   
   
@@ -139,7 +141,7 @@ describe("Test processed recipe", function()
   end)
   it("Should parse cookware", function()
     local example = [[
-    Pour into a #bowl and leave to stand for ~{15%minutes}.
+    Pour into a #bowl{2} and leave to stand for ~{15%minutes}.
 
     Melt the @butter (or a drizzle of @oil if you want to be a bit healthier) in a #large non-stick frying pan{} on a medium heat, then tilt the pan so the butter coats the surface.
     ]]
@@ -147,8 +149,30 @@ describe("Test processed recipe", function()
     local cookware      = parser.cookware
     local used_cookware = parser.used_cookware 
     assert.same(#cookware, 2)
-    assert.same(cookware[1].name, "bowl")
+    local bowl = cookware[1]
+    assert.same(bowl.name, "bowl")
+    assert.same(bowl.amount, 2)
     assert.same(cookware[2].name, "large non-stick frying pan")
+  end)
+  it("Should parse timers", function()
+    local example = [[
+    ~cook{15%minutes} @potatoes. ~bake{75%minutes} @pork, unnamed timer ~{20%minutes}.
+    ]]
+    local parser = cooklang_parser:new(example)
+    local timers = parser.timers
+    assert.same(#timers, 3)
+    local cook = timers[1]
+    assert.same(cook.name, "cook")
+    assert.same(cook.value, 15)
+    assert.same(cook.unit, "minutes")
+    local bake = timers[2]
+    assert.same(bake.name, "bake")
+    assert.same(bake.value, 75)
+    assert.same(bake.unit, "minutes")
+    local unnamed = timers[3]
+    assert.same(unnamed.name, "")
+    assert.same(unnamed.value, 20)
+    assert.same(unnamed.unit, "minutes")
   end)
 end)
 
