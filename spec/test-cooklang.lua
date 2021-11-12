@@ -112,7 +112,7 @@ describe("Test processed recipe", function()
   it("Should parse ingredients", function()
     local example = [[Add @water{3%l}, @water{2%l}, @water{100%ml}, @water, @milk]]
     local parser = cooklang_parser:new(example)
-    local ingredients = parser.ingredients 
+    local ingredients = parser.used_ingredients 
     assert.same(type(ingredients), "table")
     -- count number of ingredients. it is associative table, so we must use this trick
     -- to count it
@@ -131,5 +131,10 @@ describe("Test processed recipe", function()
     assert.same(water[1].unit, "l")
     assert.same(water[2].amount, 100)
     assert.same(water[2].unit, "ml")
+    -- test ingredient list
+    local ingredients = parser.ingredients
+    assert.same(#ingredients, 2)
+    assert.same(ingredients[1].name, "water")
+    assert.same(ingredients[2].name, "milk")
   end)
 end)

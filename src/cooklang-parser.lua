@@ -167,8 +167,8 @@ function Recipe:add_ingredient(ingredient)
   -- sum amounts of the same units
   local name = ingredient.name
   local quantity = ingredient.quantity or {}
-  local saved_ingredient = self.ingredients[name] or {}
-  -- saved_ingredient.name = saved_ingredient.name or name
+  local saved_ingredient = self.used_ingredients[name] or {}
+  saved_ingredient.name = saved_ingredient.name or name
   local saved_quantity = saved_ingredient or {}
   local unit = quantity.unit 
   local amount = tonumber(quantity.amount) 
@@ -209,14 +209,22 @@ function Recipe:add_ingredient(ingredient)
   end
     
   -- saved_ingredient.quantity = saved_quantity
-  self.ingredients[name] = saved_quantity
+  if not self.used_ingredients[name] then
+    -- save ingredient to hash table for quick access,
+    -- and also to ingredient list, so we can keep their order
+    self.used_ingredients[name] = saved_quantity
+    self.ingredients[#self.ingredients+1] = saved_quantity
+  end
 end
 
+local function is_quantity(quantity)
+  if type(quantity) == "table" and #quantity > 0 and quantity[1] == "quantity" then return true end
+end
 function Recipe:process_ingredient(ingredient, quantity)
   local name = ingredient[2]
   local newquantity = {}
   -- process quantity
-  if #quantity > 0 and quantity[1] == "quantity" then
+  if is_quantity(quantity) then
     -- first table item in quantity is "quantitity" string, we can skip that
     for i = 2, #quantity do
       local key = quantity[i][1]
@@ -229,6 +237,12 @@ function Recipe:process_ingredient(ingredient, quantity)
   self:add_ingredient(newingredient)
   return newingredient
 end
+
+function Recipe:process_cookware(cookware)
+  name = cookware[2]
+
+end
+
 
 function Recipe:process_steps()
   -- extract ingredients, timers and cookware
@@ -247,6 +261,9 @@ function Recipe:process_steps()
         newstep[#newstep+1] = element
       elseif typ == "timer" then
         newstep[#newstep+1] = element
+      elseif typ == "quantity" then
+        -- ignore quantity, it should be handled by ingredient, cookware or timer 
+        -- handlers
       else
         newstep[#newstep+1] = element
       end
@@ -279,6 +296,8 @@ function Recipe:new(text)
     metadata = {},
     cookware = {},
     ingredients = {},
+    used_cookware = {},
+    used_ingredients = {}
   }
   self.__index = self
   setmetatable(t, self)
