@@ -251,6 +251,34 @@ function Recipe:process_cookware(cookware)
   return newcookware
 end
 
+function Recipe:process_timers(timer)
+  local newtimer = {name = "timer"}
+  -- convert parsed info from timer to key-val list
+  -- timer[1] is string "timer", further ones are parsed values
+  for i = 2, #timer do
+    local el = timer[i]
+    key, value = el[1], el[2]
+    newtimer[key] = value
+  end
+  -- try to convert the numerical value to number
+  newtimer.value = tonumber(newtimer.value) or newtimer.value
+  -- save timer
+  self.timers[#self.timers+1] = newtimer
+  return newtimer
+end
+
+function Recipe:process_element(element)
+  local newelement = {name = element[1]}
+  for i=2, #element do
+    local el = element[i]
+    if type(el) == "table" then
+      local key, value = el[1], el[2]
+      newelement[key] = value
+    end
+  end
+  return newelement
+end
+
 
 function Recipe:process_steps()
   -- extract ingredients, timers and cookware
@@ -268,16 +296,22 @@ function Recipe:process_steps()
       elseif typ == "cookware" then
         newstep[#newstep+1] = self:process_cookware(element)
       elseif typ == "timer" then
-        newstep[#newstep+1] = element
+        newstep[#newstep+1] = self:process_timers(element)
+      elseif typ == "comment" then
+        newstep[#newstep+1] = {type="comment", value=element[2]}
+      elseif typ == "text" then
+        newstep[#newstep+1] = {type="text", value=element[2]}
       elseif typ == "quantity" then
         -- ignore quantity, it should be handled by ingredient, cookware or timer 
         -- handlers
       else
-        newstep[#newstep+1] = element
+        -- this shouldn't happen
+        newstep[#newstep+1] = self:process_element(element)
       end
       -- print(typ)
     end
     -- replace original steps with processed data
+    pretty(newstep)
     self.steps[i] = newstep
   end
 end
