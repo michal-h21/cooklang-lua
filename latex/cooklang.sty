@@ -21,7 +21,8 @@ end
 
 function cooklang.parse_buffer()
   -- get buffer lines and reset buffer
-  local text = table.concat(buffer)
+  local text = table.concat(buffer, "\n")
+  print(text)
   buffer = {} 
 end
 
@@ -30,19 +31,20 @@ function cooklang.test_end_buffer(line)
 end
 
 function cooklang.process_buffer(line)
+  print("processing", line)
   if cooklang.test_end_buffer(line) then
     cooklang.stop_buffer()
     cooklang.parse_buffer()
     return line
   end
   buffer[#buffer + 1] = line
-  return nil
+  return ""
 end
 
 end
 \end{luacode*}
 
-\newenvironment{cooklang}[1]{\luaexec{cooklang.start_buffer()}}{}
+\newenvironment{cooklang}[1]{\directlua{cooklang.start_buffer()}}{}
 
 
 
