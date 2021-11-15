@@ -1,0 +1,50 @@
+\ProvidesPackage{cooklang}
+\RequirePackage{luacode}
+
+% define callbacks and processing functions
+\begin{luacode*}
+do
+local cooklang_parser = require "cooklang-parser"
+-- buffer that contain current cooklang environment
+local buffer = {}
+
+-- 
+cooklang = {}
+cooklang.end_buffer_pattern = "^%s*\\end{cooklang}"
+function cooklang.start_buffer()
+  luatexbase.add_to_callback('process_input_buffer', cooklang.process_buffer, 'cooklang')
+end
+
+function cooklang.stop_buffer()
+  luatexbase.remove_from_callback('process_input_buffer', 'cooklang')
+end
+
+function cooklang.parse_buffer()
+  -- get buffer lines and reset buffer
+  local text = table.concat(buffer)
+  buffer = {} 
+end
+
+function cooklang.test_end_buffer(line)
+  return line:match(cooklang.end_buffer_pattern)
+end
+
+function cooklang.process_buffer(line)
+  if cooklang.test_end_buffer(line) then
+    cooklang.stop_buffer()
+    cooklang.parse_buffer()
+    return line
+  end
+  buffer[#buffer + 1] = line
+  return nil
+end
+
+end
+\end{luacode*}
+
+\newenvironment{cooklang}[1]{\luaexec{cooklang.start_buffer()}}{}
+
+
+
+
+\endinput
