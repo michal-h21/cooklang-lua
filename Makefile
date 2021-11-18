@@ -27,3 +27,5 @@ build: $(LUA_CONTENT) $(TEX_CONTENT)
 	cp $(LUA_CONTENT) $(TEX_CONTENT) $(BUILD_DEST)
 	cd $(BUILD_DIR) && zip -r $(ZIP_NAME) $(PKG_NAME)
 	
+test:
+	busted spec/test-cooklang.lua
