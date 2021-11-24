@@ -57,6 +57,7 @@ describe("It should parse full recipe", function()
     assert.same(type(comment), "table")
     assert.same(comment[1], "comment")
     assert.same(comment[2], "Source: https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/")
+    -- test block comments
     local blockcommenttext = [[
     Hello, [- inline comment -]
     Try [- multi line
