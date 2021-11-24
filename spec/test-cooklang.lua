@@ -4,7 +4,7 @@ local example = [[
 >> time required: 1.5 hours
 >> course: dinner
 
-// Source: https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/
+-- Source: https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/
 
 Crack the @eggs{3} into a blender, then add the @flour{125%g}, @milk{250%ml} and @sea salt{1%pinch}, and blitz until smooth.
 
@@ -16,7 +16,7 @@ Pour in 1 ladle of batter and tilt again, so that the batter spreads all over th
 
 Once golden underneath, flip the pancake over and cook for 1 further minute, or until cooked through.
 
-Serve straightaway with your favourite topping. // Add your favorite topping here to make sure it's included in your meal plan!
+Serve straightaway with your favourite topping. -- Add your favorite topping here to make sure it's included in your meal plan!
 ]]
 
 describe("It should parse full recipe", function()
