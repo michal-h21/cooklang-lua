@@ -38,6 +38,8 @@ local linechar      = P(1 - newline)
 local blankline     = (optionalspace * newline) ^ 2
 local blanklines    = blankline^1/ mark "blankline"
 local commentchar   = P("--")
+local commentstart  = P("[-")
+local commentend    = P("-]")
 local metadatachar  = P(">>")
 local ingredientchar= P("@")
 local lbrace        = P("{")
@@ -45,6 +47,7 @@ local rbrace        = P("}")
 local specialchars  = S(",.!?{}@#~")
 local word          = any - spacechar - specialchars ^ 1
 local content       = any - specialchars ^ 1
+local blockcommentcontent = any - commentend
 
 -- handle @ingredients
 local ingredient    = ingredientchar * (word ^ 1 / mark "ingredient")
@@ -86,12 +89,13 @@ local line          = linechar^0 - newline
                       + linechar^1 - eof
 -- handle comments
 local comment       = commentchar * optionalspace * (line / mark "comment")
+local commentblock  = commentstart * (blockcommentcontent ^ 1 / mark "comment") * commentend
 -- handle metadata
 local metadata      = metadatachar * optionalspace * ( C( nocolon ^ 1) * optionalspace * colon ^ 0 * optionalspace * C (line) / mark "metadata")
 
 -- supported inline content 
-local inlines       = (comment + ingredientlong + ingredients + cookware + timer) ^ 1
-local text          = (any - newline - inlines -  metadata) ^ 1 / mark "text"
+local inlines       = (comment + ingredientlong + ingredients + cookware + timer + commentblock) ^ 1
+local text          = (any - newline - inlines -  metadata ) ^ 1 / mark "text"
 
 -- mark lines
 local linecontent   = (inlines +  text) ^ 1

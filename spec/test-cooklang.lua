@@ -57,6 +57,20 @@ describe("It should parse full recipe", function()
     assert.same(type(comment), "table")
     assert.same(comment[1], "comment")
     assert.same(comment[2], "Source: https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/")
+    local blockcommenttext = [[
+    Hello, [- inline comment -]
+    Try [- multi line
+    comment -] ]]
+    local commentparser = cooklang_parser:new(blockcommenttext)
+    local data = commentparser:get_ast()
+    -- data are two lines, as multiline comment eats lines
+    local comment = data[1][3]
+    assert.same(comment[1], "comment")
+    assert.same(comment[2], " inline comment ")
+    local comment = data[2][3]
+    assert.same(comment[1], "comment")
+    assert.same(comment[2], [[ multi line
+    comment ]])
   end)
 
   it("Should handle ingredients", function()
