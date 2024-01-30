@@ -275,6 +275,8 @@ function Recipe:process_timers(timer, quantity)
   tbl_to_keys(quantity, newtimer)
   -- try to convert the numerical value to number
   newtimer.value = tonumber(newtimer.value) or newtimer.value
+  -- again, make the name consistent with the cooklang test suite
+  newtimer.quantity = newtimer.value
   -- save timer
   self.timers[#self.timers+1] = newtimer
   return newtimer
