@@ -61,9 +61,9 @@ local notrbrace     = P(1 - rbrace)
 local notrbracepercent = notrbrace - percent
 --
 local simplequantity= (notrbracepercent ^ 1 / mark "amount")
-local unitquantity  = (notrbracepercent ^ 1 / mark "amount") *  percent * (notrbrace ^ 0 /mark "unit")
+local unitquantity  = (notrbracepercent ^ 1 / mark "amount") *  percent * (notrbrace ^ 0 /mark "units")
 local notmultiply   = notrbracepercent - multiply
-local multiplyquantity = (notmultiply ^ 1 / mark "amount") * (multiply / mark "multiply") *  percent * (notrbrace ^ 0 /mark "unit")
+local multiplyquantity = (notmultiply ^ 1 / mark "amount") * (multiply / mark "multiply") *  percent * (notrbrace ^ 0 /mark "units")
 local quantity      = multiplyquantity + unitquantity + simplequantity 
 -- 
 local ingredientarg = ingredientchar * (content ^ 1 / mark "ingredientarg") 
@@ -81,7 +81,7 @@ local cookware      = cookwarequantity + cookwarelong + cookwaresimple
 -- handle ~timers
 local timerchar     = "~"
 local timeamount    = (notrbracepercent ^ 1 / mark "value")
-local timeunit      = (notrbrace ^ 1 / mark "unit")
+local timeunit      = (notrbrace ^ 1 / mark "units")
 local timer         = timerchar * (content ^ 0 / mark "timer") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
 
 
@@ -175,7 +175,7 @@ function Recipe:add_ingredient(ingredient)
   local saved_ingredient = self.used_ingredients[name] or {}
   saved_ingredient.name = saved_ingredient.name or name
   local saved_quantity = saved_ingredient or {}
-  local unit = quantity.unit 
+  local unit = quantity.units 
   local amount = tonumber(quantity.amount) 
   -- if amount is numerical and has unit, try to update already existing
   --
@@ -184,7 +184,7 @@ function Recipe:add_ingredient(ingredient)
     -- increase amounts for the same units of the ingredient
     local updated = false
     for k, v in ipairs(saved_quantity) do
-      if unit == v.unit then
+      if unit == v.units then
         updated = true
         saved_quantity[k].amount = (saved_quantity[k].amount or 0) + amount
       end

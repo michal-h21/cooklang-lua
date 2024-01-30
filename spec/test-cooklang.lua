@@ -92,7 +92,7 @@ describe("It should parse full recipe", function()
     assert.same(#quantity, 3)
     assert.same(quantity[2][1], "amount")
     assert.same(quantity[2][2], "125")
-    assert.same(quantity[3][1], "unit")
+    assert.same(quantity[3][1], "units")
     assert.same(quantity[3][2], "g")
     local ingredients_line = data[11]
     local butter = ingredients_line[3]
@@ -117,7 +117,7 @@ describe("It should parse full recipe", function()
     assert.same(timer_quantity[1], "quantity")
     assert.same(timer_quantity[2][1], "value")
     assert.same(timer_quantity[2][2], "15")
-    assert.same(timer_quantity[3][1], "unit")
+    assert.same(timer_quantity[3][1], "units")
     assert.same(timer_quantity[3][2], "minutes")
   end)
   
@@ -145,9 +145,9 @@ describe("Test processed recipe", function()
     assert.same(#ingredients.milk, 1)
     local water = ingredients.water
     assert.same(water[1].amount, 5)
-    assert.same(water[1].unit, "l")
+    assert.same(water[1].units, "l")
     assert.same(water[2].amount, 100)
-    assert.same(water[2].unit, "ml")
+    assert.same(water[2].units, "ml")
     -- test ingredient list
     local ingredients = parser.ingredients
     assert.same(#ingredients, 2)
@@ -179,15 +179,15 @@ describe("Test processed recipe", function()
     local cook = timers[1]
     assert.same(cook.name, "cook")
     assert.same(cook.value, 15)
-    assert.same(cook.unit, "minutes")
+    assert.same(cook.units, "minutes")
     local bake = timers[2]
     assert.same(bake.name, "bake")
     assert.same(bake.value, 75)
-    assert.same(bake.unit, "minutes")
+    assert.same(bake.units, "minutes")
     local unnamed = timers[3]
     assert.same(unnamed.name, "")
     assert.same(unnamed.value, 20)
-    assert.same(unnamed.unit, "minutes")
+    assert.same(unnamed.units, "minutes")
   end)
 end)
 
