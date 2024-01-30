@@ -317,8 +317,8 @@ function Recipe:process_steps()
       end
       -- print(typ)
     end
+    -- pretty(newstep)
     -- replace original steps with processed data
-    pretty(newstep)
     self.steps[i] = newstep
   end
 end
