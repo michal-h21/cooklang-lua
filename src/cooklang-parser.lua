@@ -247,6 +247,8 @@ function Recipe:process_ingredient(ingredient, quantity)
   local newingredient =  {type = "ingredient", name = name}
   if is_quantity(quantity) then
     tbl_to_keys(quantity, newingredient)
+    -- cooklang test suite uses quantity instead of amount 
+    newingredient.quantity = newingredient.amount
   end
   -- add new ingredient to list of ingredients
   self:add_ingredient(newingredient)
