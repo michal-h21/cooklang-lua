@@ -41,6 +41,7 @@ local function compare(parser, tbl)
       -- compare particular objects in step
       local parser_object = parser_step[x] or {}
       for k,v in pairs(object) do
+        print(k,v, parser_object[k])
         assert.same(v, parser_object[k])
       end
     end
@@ -66,9 +67,12 @@ end
 
 local data, msg = get_yaml("spec/canonical.yaml")
 
-for k,v in pairs(data.tests) do
--- local k, v = "hello", data.tests["testCommentsAfterIngredients"]
+-- for k,v in pairs(data.tests) do
+-- local k, v = "hello", data.tests["testSingleWordTimerWithUnicodePunctuation"]
+-- local k, v = "hello", data.tests["testTimerWithUnicodeWhitespace"]
+local k, v = "hello", data.tests["testTimerDecimal"]
+-- local k, v = "hello", data.tests["testTimerFractional"] -- todo: add support for parsing of 1/2 in units and timers
   run_test(k,v)
-end
+-- end
 
 
