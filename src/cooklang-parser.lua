@@ -26,6 +26,24 @@ mark = function(name)
   end
 end
 
+local cont = lpeg.R("\128\191") -- continuation byte
+
+local match_utf8 = lpeg.R("\0\127")
+           + lpeg.R("\194\223") * cont
+           + lpeg.R("\224\239") * cont * cont
+           + lpeg.R("\240\244") * cont * cont * cont
+
+
+local punctuation = lpeg.Cmt(lpeg.C(match_utf8), function (s, i, c)
+  local unicode_punct = {}
+  -- todo: add list of unicode punctuation
+  if unicode_punct[c] then
+  -- if utf8.match(c, "%p") then
+    return i
+  end
+  if c == "." then return i end
+end)
+
 -- define grammar for Cooklang
 local newline       = P("\n")
 local any           = P(1)
@@ -45,7 +63,7 @@ local ingredientchar= P("@")
 local lbrace        = P("{")
 local rbrace        = P("}")
 local specialchars  = S(",.!?{}@#~")
-local word          = any - spacechar - specialchars ^ 1
+local word          = any - spacechar - specialchars - punctuation ^ 1
 local content       = any - specialchars ^ 1
 local blockcommentcontent = any - commentend
 
