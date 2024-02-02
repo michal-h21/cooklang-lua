@@ -4,6 +4,7 @@ example = "Pour into a #bowl and leave to stand for ~{15%minutes}. #large non-st
 
 
 local Recipe = {}
+local unicode_data = require "cooklang-unicode-data"
 
 
 local utfcodepoint = utf8.codepoint
@@ -33,15 +34,30 @@ local match_utf8 = lpeg.R("\0\127")
            + lpeg.R("\224\239") * cont * cont
            + lpeg.R("\240\244") * cont * cont * cont
 
+          
+local utf_char = utf8.char 
+local function load_unicode_category(category)
+  -- load characters of the given category and make table that we can query
+  local data = {}
+  local chars = unicode_data[category] or ""
+  for _, codepoint in utf8.codes(chars) do
+    data[utf_char(codepoint)] = true
+  end
+  return data
+end
+
+local space_chars = load_unicode_category("Z")
+local punct_chars = load_unicode_category("P")
+
+
+
 
 local punctuation = lpeg.Cmt(lpeg.C(match_utf8), function (s, i, c)
-  local unicode_punct = {}
   -- todo: add list of unicode punctuation
-  if unicode_punct[c] then
+  if punct_chars[c] then
   -- if utf8.match(c, "%p") then
     return i
   end
-  if c == "." then return i end
 end)
 
 -- define grammar for Cooklang
@@ -100,7 +116,9 @@ local cookware      = cookwarequantity + cookwarelong + cookwaresimple
 local timerchar     = "~"
 local timeamount    = (notrbracepercent ^ 1 / mark "value")
 local timeunit      = (notrbrace ^ 1 / mark "units")
-local timer         = timerchar * (content ^ 0 / mark "timer") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
+local timerquantity = timerchar * (content ^ 0 / mark "timer") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
+local timernamed    = timerchar * (word ^ 1 / mark "timer")
+local timer         = timerquantity + timernamed
 
 
 local line          = linechar^0 - newline
@@ -290,7 +308,9 @@ function Recipe:process_timers(timer, quantity)
   local newtimer = {type = "timer"}
   newtimer.name = timer[2]
   -- convert parsed info from timer to key-val list
-  tbl_to_keys(quantity, newtimer)
+  if type(quantity) == "table" then
+    tbl_to_keys(quantity, newtimer)
+  end
   -- try to convert the numerical value to number
   newtimer.value = tonumber(newtimer.value) or newtimer.value
   -- again, make the name consistent with the cooklang test suite
