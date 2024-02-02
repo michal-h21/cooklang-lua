@@ -11,8 +11,13 @@ DOC_NAME = $(PKG_NAME)-doc
 DOC_PDF  = $(DOC_NAME).pdf
 DOC_TEX  = $(DOC_NAME).tex
 
+all: latex/$(DOC_PDF) src/cooklang-unicode-data.lua 
+
 latex/$(DOC_PDF): latex/$(DOC_TEX) $(LUA_CONTENT) $(TEX_CONTENT)
 	cd latex && lualatex $(DOC_TEX)
+
+src/cooklang-unicode-data.lua: tools/make_unicode_data.lua
+	texlua $< > $@
 
 
 install:
