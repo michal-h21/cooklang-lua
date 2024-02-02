@@ -69,8 +69,10 @@ local data, msg = get_yaml("spec/canonical.yaml")
 
 -- for k,v in pairs(data.tests) do
 -- local k, v = "hello", data.tests["testSingleWordTimerWithUnicodePunctuation"]
+local k, v = "hello", data.tests["testSingleWordTimer"]
+
 -- local k, v = "hello", data.tests["testTimerWithUnicodeWhitespace"]
-local k, v = "hello", data.tests["testTimerDecimal"]
+-- local k, v = "hello", data.tests["testTimerDecimal"]
 -- local k, v = "hello", data.tests["testTimerFractional"] -- todo: add support for parsing of 1/2 in units and timers
   run_test(k,v)
 -- end
