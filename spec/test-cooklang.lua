@@ -112,7 +112,7 @@ describe("It should parse full recipe", function()
     assert.same(cookware[1], "cookware")
     assert.same(cookware[2], "frying pan")
     local timer = line[5]
-    assert.same(timer[1], "timer")
+    assert.same(timer[1], "timerquantity")
     local timer_quantity = line[6]
     assert.same(timer_quantity[1], "quantity")
     assert.same(timer_quantity[2][1], "value")
