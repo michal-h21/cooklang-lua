@@ -328,7 +328,10 @@ function Recipe:process_cookware(cookware, quantity)
   if not self.used_cookware[name] then
     self.cookware[#self.cookware+1] = newcookware
     self.used_cookware[name] = newcookware
-    if quantity and is_quantity(quantity) then tbl_to_keys(quantity, newcookware) end
+    if quantity and is_quantity(quantity) then 
+      tbl_to_keys(quantity, newcookware) 
+      newcookware.quantity = newcookware.amount or ""
+    end
     -- even cookware should have default quantity
     newcookware.quantity = newcookware.quantity or 1
   end
