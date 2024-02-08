@@ -23,8 +23,9 @@ describe("It should parse full recipe", function()
   local parser = cooklang_parser:new(example)
   local data = parser:get_ast()
 
+
   local function is_metadata(tbl)
-    return tbl[1] == "metadata"
+    return tbl[1] == "metadataproperty"
   end
   local function is_line(tbl)
     return tbl[1] == "line"
@@ -37,19 +38,21 @@ describe("It should parse full recipe", function()
   it("Parser should return ast", function()
     assert.same(type(data),"table")
     assert.truthy(is_metadata(data[1]))
-    assert.truthy(is_blank(data[4]))
-    assert.truthy(is_line(data[5]))
+    assert.truthy(is_blank(data[7]))
+    assert.truthy(is_line(data[8]))
   end)
 
   it("Should parse metadata", function()
     local meta = data[1]
     assert.truthy(is_metadata(meta))
     assert.same(meta[2], "source")
-    assert.same(meta[3], "https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/")
+    local metavalue = data[2]
+    assert.same(metavalue[1], "metadatavalue")
+    assert.same(metavalue[2], "https://www.jamieoliver.com/recipes/eggs-recipes/easy-pancakes/")
   end)
 
   it("Should handle comments", function()
-    local comment_line = data[5]
+    local comment_line = data[8]
     assert.truthy(is_line(comment_line))
     -- first array value is "line", second is comment
     assert.same(#comment_line, 2)
@@ -75,7 +78,7 @@ describe("It should parse full recipe", function()
   end)
 
   it("Should handle ingredients", function()
-    local ingredients_line = data[7]
+    local ingredients_line = data[10]
     assert.truthy(is_line(ingredients_line))
     local eggs = ingredients_line[3]
     local quantity = ingredients_line[4]
@@ -94,7 +97,7 @@ describe("It should parse full recipe", function()
     assert.same(quantity[2][2], "125")
     assert.same(quantity[3][1], "units")
     assert.same(quantity[3][2], "g")
-    local ingredients_line = data[11]
+    local ingredients_line = data[14]
     local butter = ingredients_line[3]
     assert.same(butter[1], "ingredient")
     assert.same(butter[2], "butter")
