@@ -14,12 +14,12 @@ local function fix_source(source)
   local lines = {}
   for line in source:gmatch("([^\n]*)") do
     -- don't add extra lines to metadata
-    if not line:match("^%s*>>") then
-      lines[#lines+1] = ""
+    if not line:match("^%s*>>") and not line:match("^%s*%-%-") and not line:match("^%s*$")then
+      lines[#lines+1] = "\n"
     end
     lines[#lines+1] = line
   end
-  return table.concat(lines, "\n")
+  return table.concat(lines)
 end
 
 local function remove_comments(steps)
@@ -49,6 +49,7 @@ local function compare(parser, tbl)
   -- now compare metadata
   local parser_metadata = parser.metadata
   for k,v in pairs(tbl.result.metadata) do
+    print("metadata",k, v, parser_metadata[k])
     assert.same(v, parser_metadata[k])
   end
 end
@@ -56,7 +57,7 @@ end
 local function run_test(k,v)
   describe(k , function()
     print("***********************", k)
-    print(v.source)
+    print(fix_source(v.source))
     local x = cooklang_parser:new(fix_source(v.source))
     x.steps = remove_comments(x.steps)
     compare(x, v)
@@ -68,11 +69,11 @@ end
 local data, msg = get_yaml("spec/canonical.yaml")
 
 -- for k,v in pairs(data.tests) do
--- local k, v = "hello", data.tests["testSingleWordTimerWithUnicodePunctuation"]
-local k, v = "hello", data.tests["testSingleWordTimer"]
 
--- local k, v = "hello", data.tests["testTimerWithUnicodeWhitespace"]
--- local k, v = "hello", data.tests["testTimerDecimal"]
+
+-- local k, v = "hello", data.tests[""] 
+local k, v = "hello", data.tests["testMetadata"] 
+--
 -- local k, v = "hello", data.tests["testTimerFractional"] -- todo: add support for parsing of 1/2 in units and timers
   run_test(k,v)
 -- end
