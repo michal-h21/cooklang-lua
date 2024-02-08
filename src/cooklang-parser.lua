@@ -95,10 +95,10 @@ local blockcommentcontent = any - commentend
 local ingredient    = ingredientchar * (word ^ 1 / mark "ingredient")
 local ingredientlong= ingredientchar * (content ^ 1 / mark "ingredient") * lbrace * optionalspace * rbrace
 
-local quantityspecials = S("%*")
-local amount        = any - quantityspecials ^ 0
 local multiply      = P("*")
 local percent       = P("%")
+local quantityspecials = multiply + percent -- S("%*")
+local amount        = any - quantityspecials ^ 0
 local notrbrace     = P(1 - rbrace)
 local notrbracepercent = notrbrace - percent
 --
@@ -109,7 +109,7 @@ local multiplyquantity = (notmultiply ^ 1 / mark "amount") * (multiply / mark "m
 local quantity      = multiplyquantity + unitquantity + simplequantity 
 -- 
 local ingredientarg = ingredientchar * (content ^ 1 / mark "ingredientarg") 
-                      * lbrace * (quantity / mark "quantity")  * rbrace
+                      * lbrace * (quantity / mark "quantity") * rbrace
 
 local ingredients   = ingredientarg + ingredient 
 
@@ -173,6 +173,23 @@ local function copy_table(tbl)
     end
   end
   return t
+end
+
+
+-- trim spaces at the beginning and end of text
+local function trim_spaces(text)
+  -- don't try to process other types than strings
+  if type(text) ~= "string" then return text end
+  return text:gsub("^%s*", ""):gsub("%s*$","")
+end
+
+local function fix_spaces(tbl)
+  -- sometimes some fields contain extra spaces. we need to remove them
+  for k,v in ipairs(tbl) do 
+    v.name = trim_spaces(v.name)
+    v.quantity = trim_spaces(v.quantity)
+  end
+  return tbl
 end
 
 function Recipe:parse(text)
@@ -277,7 +294,6 @@ local function tbl_to_keys(quantity, tbl)
   for i = 2, #quantity do
     local el = quantity[i]
     key, value = el[1], el[2]
-    print(el, key, value)
     -- convert value to number, if possible
     value = tonumber(value) or value
     tbl[key] = value
@@ -293,7 +309,12 @@ function Recipe:process_ingredient(ingredient, quantity)
   if is_quantity(quantity) then
     tbl_to_keys(quantity, newingredient)
     -- cooklang test suite uses quantity instead of amount 
-    newingredient.quantity = newingredient.amount
+    newingredient.quantity = newingredient.amount or ""
+    newingredient.units = newingredient.units or ""
+  else
+    -- ingredients without speicified amount still should have a quantity of "some"
+    newingredient.quantity = self.some
+    newingredient.units = ""
   end
   -- add new ingredient to list of ingredients
   self:add_ingredient(newingredient)
@@ -372,7 +393,7 @@ function Recipe:process_steps()
     end
     -- pretty(newstep)
     -- replace original steps with processed data
-    self.steps[i] = newstep
+    self.steps[i] = fix_spaces(newstep)
   end
 end
 
@@ -401,7 +422,8 @@ function Recipe:new(text)
     ingredients = {},
     -- these are hash table for fast access to cookware and ingredients by name
     used_cookware = {},
-    used_ingredients = {}
+    used_ingredients = {},
+    some = "some" -- amount used for ingredients without explicit quantity
   }
   self.__index = self
   setmetatable(t, self)
