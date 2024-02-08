@@ -231,9 +231,9 @@ function Recipe:process_lines()
       block = {}
       if typ == "metadataproperty" then
         -- insert metadata to the metadata table
-        current_property = line[2]
+        current_property = trim_spaces(line[2])
       elseif typ == "metadatavalue" then
-        self.metadata[current_property] = line[2]
+        self.metadata[current_property] = trim_spaces(line[2])
       end
     end
   end
