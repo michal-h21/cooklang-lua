@@ -116,7 +116,7 @@ local cookware      = cookwarequantity + cookwarelong + cookwaresimple
 local timerchar     = "~"
 local timeamount    = (notrbracepercent ^ 1 / mark "value")
 local timeunit      = (notrbrace ^ 1 / mark "units")
-local timerquantity = timerchar * (content ^ 0 / mark "timer") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
+local timerquantity = timerchar * (content ^ 0 / mark "timerquantity") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
 local timernamed    = timerchar * (word ^ 1 / mark "timer")
 local timer         = timerquantity + timernamed
 
@@ -269,6 +269,7 @@ local function tbl_to_keys(quantity, tbl)
   for i = 2, #quantity do
     local el = quantity[i]
     key, value = el[1], el[2]
+    print(el, key, value)
     -- convert value to number, if possible
     value = tonumber(value) or value
     tbl[key] = value
@@ -312,9 +313,10 @@ function Recipe:process_timers(timer, quantity)
     tbl_to_keys(quantity, newtimer)
   end
   -- try to convert the numerical value to number
-  newtimer.value = tonumber(newtimer.value) or newtimer.value
+  newtimer.value = tonumber(newtimer.value) or newtimer.value or ""
   -- again, make the name consistent with the cooklang test suite
   newtimer.quantity = newtimer.value
+  newtimer.units = newtimer.units or ""
   -- save timer
   self.timers[#self.timers+1] = newtimer
   return newtimer
@@ -341,9 +343,12 @@ function Recipe:process_steps()
         newstep[#newstep+1] = self:process_ingredient(element, step[i+1])
       elseif typ == "cookware" then
         newstep[#newstep+1] = self:process_cookware(element, step[i+1])
-      elseif typ == "timer" then
+      elseif typ == "timerquantity" then
         -- we must process also next step, which contains quantity
         newstep[#newstep+1] = self:process_timers(element, step[i+1])
+      elseif typ == "timer" then
+        -- we must process also next step, which contains quantity
+        newstep[#newstep+1] = self:process_timers(element, {})
       elseif typ == "comment" then
         newstep[#newstep+1] = {type="comment", value=element[2]}
       elseif typ == "text" then
