@@ -162,8 +162,7 @@ tests:
 
 
   testEquipmentQuantity:
-    source: |
-      #frying pan{2}
+    source: "#frying pan{2}"
     result:
       steps:
         -
