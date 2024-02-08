@@ -14,7 +14,8 @@ local function fix_source(source)
   local lines = {}
   for line in source:gmatch("([^\n]*)") do
     -- don't add extra lines to metadata
-    if not line:match("^%s*>>") and not line:match("^%s*%-%-") and not line:match("^%s*$")then
+    -- if not line:match("^%s*>>") and not line:match("^%s*%-%-") and not line:match("^%s*$")then
+    if not line:match("^%s*>>") and not line:match("^%s*%-%-") then
       lines[#lines+1] = "\n"
     end
     lines[#lines+1] = line
@@ -58,6 +59,7 @@ local function run_test(k,v)
   describe(k , function()
     print("***********************", k)
     print(fix_source(v.source))
+    print "***********************"
     local x = cooklang_parser:new(fix_source(v.source))
     x.steps = remove_comments(x.steps)
     compare(x, v)
@@ -72,9 +74,8 @@ local data, msg = get_yaml("spec/canonical.yaml")
 
 
 -- local k, v = "hello", data.tests[""] 
-local k, v = "hello", data.tests["testMetadata"] 
+local k, v = "hello", data.tests["testTimerDecimal"] 
 --
--- local k, v = "hello", data.tests["testTimerFractional"] -- todo: add support for parsing of 1/2 in units and timers
   run_test(k,v)
 -- end
 
