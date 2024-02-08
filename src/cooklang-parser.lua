@@ -137,7 +137,7 @@ local comment       = commentchar * optionalspace * (line / mark "comment")
 local commentblock  = commentstart * (blockcommentcontent ^ 1 / mark "comment") * commentend
 -- handle metadata
 -- local metadata      = metadatachar * optionalspace * ( C( nocolon ^ 1) * optionalspace * colon ^ 0 * optionalspace * C (line) / mark "metadata")
-local metadata      = metadatachar * optionalspace * C( nocolon ^ 1 / mark "metadataproperty") * optionalspace * colon ^ 0 * optionalspace * (C (line) / mark "metadatavalue")
+local metadata      = metadatachar * optionalspace * (C( nocolon ^ 1 ) / mark "metadataproperty") * optionalspace * colon ^ 0 * optionalspace * (C (line) / mark "metadatavalue")
 
 -- supported inline content 
 local inlines       = (comment + ingredientlong + ingredients + cookware + timer + commentblock) ^ 1
