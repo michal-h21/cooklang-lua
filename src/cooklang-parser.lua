@@ -97,6 +97,7 @@ local ingredientlong= ingredientchar * (content ^ 1 / mark "ingredient") * lbrac
 
 local multiply      = P("*")
 local percent       = P("%")
+local divide        = P("/")
 local quantityspecials = multiply + percent -- S("%*")
 local amount        = any - quantityspecials ^ 0
 local notrbrace     = P(1 - rbrace)
@@ -192,6 +193,16 @@ local function fix_spaces(tbl)
   return tbl
 end
 
+local function get_number(quantity)
+  -- convert quantity to number
+  if type(quantity) ~= "string" then return quantity end
+  -- support fractions
+  local numerator, denominator = quantity:match("^%s*(%d+)%/(%d)%s*$")
+  if numerator and denominator then return tonumber(numerator) / tonumber(denominator) end
+  -- otherwise, try to convert string to number
+  return tonumber(quantity)
+end
+
 function Recipe:parse(text)
   local text = text or self.text
   -- parse text and return AST
@@ -237,7 +248,7 @@ function Recipe:add_ingredient(ingredient)
   saved_ingredient.name = saved_ingredient.name or name
   local saved_quantity = saved_ingredient or {}
   local unit = quantity.units 
-  local amount = tonumber(quantity.amount) 
+  local amount = get_number(quantity.amount) 
   -- if amount is numerical and has unit, try to update already existing
   --
   if amount and unit then
@@ -295,7 +306,7 @@ local function tbl_to_keys(quantity, tbl)
     local el = quantity[i]
     key, value = el[1], el[2]
     -- convert value to number, if possible
-    value = tonumber(value) or value
+    value = get_number(value) or value
     tbl[key] = value
   end
   return tbl
