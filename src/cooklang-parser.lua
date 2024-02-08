@@ -189,6 +189,7 @@ local function fix_spaces(tbl)
   for k,v in ipairs(tbl) do 
     v.name = trim_spaces(v.name)
     v.quantity = trim_spaces(v.quantity)
+    v.units = trim_spaces(v.units)
   end
   return tbl
 end
@@ -196,8 +197,8 @@ end
 local function get_number(quantity)
   -- convert quantity to number
   if type(quantity) ~= "string" then return quantity end
-  -- support fractions
-  local numerator, denominator = quantity:match("^%s*(%d+)%/(%d)%s*$")
+  -- support fractions, but ignore stuff like 01/2
+  local numerator, denominator = quantity:match("^%s*([1-9]%d*)%s*%/%s*([1-9]%d*)%s*$")
   if numerator and denominator then return tonumber(numerator) / tonumber(denominator) end
   -- otherwise, try to convert string to number
   return tonumber(quantity)
