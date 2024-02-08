@@ -173,8 +173,7 @@ tests:
 
 
   testEquipmentQuantityOneWord:
-    source: |
-      #frying pan{three}
+    source: "#frying pan{three}"
     result:
       steps:
         -
@@ -185,8 +184,7 @@ tests:
 
 
   testEquipmentQuantityMultipleWords:
-    source: |
-      #frying pan{two small}
+    source: "#frying pan{two small}"
     result:
       steps:
         -
