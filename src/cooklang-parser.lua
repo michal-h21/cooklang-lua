@@ -27,6 +27,10 @@ mark = function(name)
   end
 end
 
+
+-- we must support all punctuation and spacing characters from Unicode
+-- it seems that Vítek Novotný was dealing with the same issue, so we could
+-- find a solution: https://stackoverflow.com/q/39006753
 local cont = lpeg.R("\128\191") -- continuation byte
 
 local match_utf8 = lpeg.R("\0\127")
@@ -36,6 +40,7 @@ local match_utf8 = lpeg.R("\0\127")
 
           
 local utf_char = utf8.char 
+
 local function load_unicode_category(category)
   -- load characters of the given category and make table that we can query
   local data = {}
@@ -50,21 +55,24 @@ local space_chars = load_unicode_category("Z")
 local punct_chars = load_unicode_category("P")
 
 
-
-
 local punctuation = lpeg.Cmt(lpeg.C(match_utf8), function (s, i, c)
-  -- todo: add list of unicode punctuation
   if punct_chars[c] then
-  -- if utf8.match(c, "%p") then
     return i
   end
 end)
+
+local spacechar = lpeg.Cmt(lpeg.C(match_utf8), function (s, i, c)
+  if space_chars[c] then
+    return i
+  end
+end)
+-- end of Unicode handling
+
 
 -- define grammar for Cooklang
 local newline       = P("\n")
 local any           = P(1)
 local eof           = - any
-local spacechar     = S("\t ")
 local colon         = P(":")
 local nocolon       = P(1 - colon - newline)
 local optionalspace = spacechar^0
