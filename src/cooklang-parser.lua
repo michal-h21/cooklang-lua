@@ -136,7 +136,8 @@ local line          = linechar^0 - newline
 local comment       = commentchar * optionalspace * (line / mark "comment")
 local commentblock  = commentstart * (blockcommentcontent ^ 1 / mark "comment") * commentend
 -- handle metadata
-local metadata      = metadatachar * optionalspace * ( C( nocolon ^ 1) * optionalspace * colon ^ 0 * optionalspace * C (line) / mark "metadata")
+-- local metadata      = metadatachar * optionalspace * ( C( nocolon ^ 1) * optionalspace * colon ^ 0 * optionalspace * C (line) / mark "metadata")
+local metadata      = metadatachar * optionalspace * C( nocolon ^ 1 / mark "metadataproperty") * optionalspace * colon ^ 0 * optionalspace * (C (line) / mark "metadatavalue")
 
 -- supported inline content 
 local inlines       = (comment + ingredientlong + ingredients + cookware + timer + commentblock) ^ 1
@@ -214,6 +215,7 @@ end
 function Recipe:process_lines()
   -- turn ast into useful data
   local block = {}
+  local current_property
   for _, line in ipairs(self.ast) do
     -- turn lines into steps
     local typ = line[1]
@@ -228,14 +230,15 @@ function Recipe:process_lines()
       -- close current block when we find metadata or blank line
       if #block > 0 then table.insert(self.steps, block) end
       block = {}
-      if typ == metadata then
+      if typ == "metadataproperty" then
         -- insert metadata to the metadata table
-        local key = line[2]
-        local value = line[3]
-        self.metadata[key] = value
+        current_property = line[2]
+      elseif typ == "metadatavalue" then
+        self.metadata[current_property] = line[2]
       end
     end
   end
+
   -- insert also last block
   if #block > 0 then table.insert(self.steps, block) end
 end
