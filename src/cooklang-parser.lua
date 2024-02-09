@@ -344,10 +344,13 @@ function Recipe:process_cookware(cookware, quantity)
     self.used_cookware[name] = newcookware
     if quantity and is_quantity(quantity) then 
       tbl_to_keys(quantity, newcookware) 
-      newcookware.quantity = newcookware.amount or ""
+      newcookware.quantity = newcookware.amount 
+      -- if cookware amount contains only spaces, remove it. it will be set to 1 later
+      if trim_spaces(newcookware.quantity) == "" then newcookware.quantity = nil end
     end
     -- even cookware should have default quantity
     newcookware.quantity = newcookware.quantity or 1
+    newcookware.units = newcookware.units or ""
   end
   return newcookware
 end
