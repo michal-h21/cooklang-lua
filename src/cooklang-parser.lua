@@ -93,7 +93,7 @@ local blockcommentcontent = any - commentend
 
 -- handle @ingredients
 local ingredient    = ingredientchar * (word ^ 1 / mark "ingredient")
-local ingredientlong= ingredientchar * (content ^ 1 / mark "ingredient") * lbrace * optionalspace * rbrace
+local ingredientlong= ingredientchar * (word ^ 1 * content ^ 0 / mark "ingredient") * lbrace * optionalspace * rbrace
 
 local multiply      = P("*")
 local percent       = P("%")
@@ -109,7 +109,7 @@ local notmultiply   = notrbracepercent - multiply
 local multiplyquantity = (notmultiply ^ 1 / mark "amount") * (multiply / mark "multiply") *  percent * (notrbrace ^ 0 /mark "units")
 local quantity      = multiplyquantity + unitquantity + simplequantity 
 -- 
-local ingredientarg = ingredientchar * (content ^ 1 / mark "ingredientarg") 
+local ingredientarg = ingredientchar * (word ^ 1 * content ^ 0 / mark "ingredientarg") 
                       * lbrace * (quantity / mark "quantity") * rbrace
 
 local ingredients   = ingredientarg + ingredient 
@@ -117,15 +117,15 @@ local ingredients   = ingredientarg + ingredient
 -- handle #cookware
 local cookwarechar  = "#"
 local cookwaresimple= cookwarechar * (word ^ 1 / mark "cookware")
-local cookwarelong  = cookwarechar * (content ^ 1 / mark "cookware") * lbrace * optionalspace * rbrace
-local cookwarequantity = cookwarechar * (content ^ 1 / mark "cookware") * lbrace * (quantity / mark "quantity") * rbrace
+local cookwarelong  = cookwarechar * (word ^ 1 * content ^ 0 / mark "cookware") * lbrace * optionalspace * rbrace
+local cookwarequantity = cookwarechar * (word ^ 1 * content ^ 0 / mark "cookware") * lbrace * (quantity / mark "quantity") * rbrace
 local cookware      = cookwarequantity + cookwarelong + cookwaresimple
 
 -- handle ~timers
 local timerchar     = "~"
 local timeamount    = (notrbracepercent ^ 1 / mark "value")
 local timeunit      = (notrbrace ^ 1 / mark "units")
-local timerquantity = timerchar * (content ^ 0 / mark "timerquantity") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
+local timerquantity = timerchar * (word ^ 0 * content ^ 0 / mark "timerquantity") * lbrace * (timeamount * percent * timeunit / mark "quantity") * rbrace
 local timernamed    = timerchar * (word ^ 1 / mark "timer")
 local timer         = timerquantity + timernamed
 
