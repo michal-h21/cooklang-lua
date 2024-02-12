@@ -1,6 +1,11 @@
 # Cooklang-lua
 
-https://cooklang.org
+This project provides [Cooklang](https://cooklang.org) library for Lua and package for LuaLaTeX. 
+
+
+## Future work
+
+- Add support for [Cooklang-rs extensions](https://github.com/cooklang/cooklang-rs/blob/main/extensions.md)
 
 # License
 
