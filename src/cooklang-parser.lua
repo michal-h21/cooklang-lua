@@ -315,6 +315,38 @@ local function tbl_to_keys(quantity, tbl)
   return tbl
 end
 
+
+local function round(a)
+  return math.floor(a+0.5)
+end
+
+function Recipe:float_to_frac(x)
+  -- convert float to a fraction
+  -- return nominator, denominator or x
+  -- source: https://jsfiddle.net/PdL23/1 by Deepak Joy Cheenath
+  if x >= 1 then return x end 
+  for p = 1, 20 do
+    for q = 1, 20 do
+      local inverse = (x * q) / p
+      local round_err = round(inverse) - inverse
+      if round(inverse) == 1 and math.abs(round_err) < 0.01 then
+        return p, q
+      end
+    end
+  end
+  -- we cannot find good fraction
+  return x
+end
+
+
+function Recipe:format_number(x)
+  -- we want the fraction with maximum of two numbers in denominator
+  local p,q = self:float_to_frac(x, 2)
+  -- number grater than 1
+  if p == x then return tostring(x) end
+  return string.format("%i", p) .. "/" .. string.format("%i", q)
+end
+
 function Recipe:process_ingredient(ingredient, quantity)
   local name = ingredient[2]
   local newquantity = {}
